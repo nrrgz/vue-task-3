@@ -1,9 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import BaseButton from '../components/base/BaseButton.vue'
+import BaseInput from '../components/base/BaseInput.vue'
 
 const clicks = ref(0)
 const saving = ref(false)
+
+const title = ref('')
+const titleError = computed(() =>
+  title.value.length > 0 && title.value.length < 3 ? 'Must be at least 3 characters' : '',
+)
 
 function handleDemoClick() {
   clicks.value++
@@ -49,6 +55,30 @@ function simulateSave() {
         <span class="demo__hint">(loading and disabled buttons must not increment this)</span>
       </p>
     </section>
+
+    <section class="demo">
+      <h2>BaseInput demo</h2>
+
+      <div class="demo__stack">
+        <BaseInput v-model="title" label="Title" placeholder="Type at least 3 characters" />
+
+        <BaseInput
+          v-model="title"
+          label="Same ref, second input"
+          :error="titleError"
+          placeholder="Both stay in sync"
+        />
+
+        <BaseInput label="Disabled" model-value="Read only" disabled />
+      </div>
+
+      <p class="demo__counter">
+        Bound value: <strong>{{ title || '(empty)' }}</strong>
+        <span class="demo__hint">
+          Both inputs share one ref — typing in either updates the other and this line.
+        </span>
+      </p>
+    </section>
   </section>
 </template>
 
@@ -75,6 +105,14 @@ function simulateSave() {
   flex-wrap: wrap;
   gap: 0.75rem;
   margin-bottom: 1rem;
+}
+
+.demo__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  max-width: 22rem;
 }
 
 .demo__counter {
