@@ -1,5 +1,38 @@
-# Vue 3 + TypeScript + Vite
+# Task Panel — Reusable Component Library + Pinia
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+A small task-management panel built to practice **reusable, fully generic Vue 3 components**
+and **Pinia** state management. The panel itself is just the demo — the real goal is a
+component library (`components/base/`) that drops into any project unchanged.
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## Tech stack
+Vue 3 (`<script setup>`) · TypeScript · Vite · Pinia · vue-router — no UI library, all
+components hand-built.
+
+## Features
+- Base component library: `BaseButton`, `BaseInput`, `BaseSelect`, `BaseModal`, `BaseTable`, `BaseToast`
+- Custom table cells via **scoped slots**; two-way binding via **`defineModel()`**
+- Pinia stores for tasks (CRUD + filtering getter) and toast notifications
+- Create / edit / delete tasks with a stacked confirmation modal
+- Hand-rolled form validation (`useValidation` composable) — required fields + email format
+- Status / priority filtering driven by a store getter
+
+## Getting started
+```bash
+npm install
+npm run dev      # start the dev server
+npm run build    # production build
+```
+
+## Project structure
+```
+src/
+├─ components/base/   # generic, reusable UI — no business logic
+├─ components/tasks/  # feature layer (TaskForm, StatusBadge)
+├─ composables/       # useValidation
+├─ stores/            # tasks, notifications (Pinia)
+├─ mock/              # local seed data
+├─ types/             # shared Task types
+└─ views/             # TasksView (main), UsersView (reuse demo)
+```
+
+Data is a local mock array — no backend required.
