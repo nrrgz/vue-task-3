@@ -2,7 +2,10 @@
 import { computed, ref } from 'vue'
 import BaseButton from '../components/base/BaseButton.vue'
 import BaseInput from '../components/base/BaseInput.vue'
+import BaseModal from '../components/base/BaseModal.vue'
 import BaseSelect from '../components/base/BaseSelect.vue'
+
+const modalOpen = ref(false)
 
 const status = ref('')
 const statusOptions = [
@@ -105,6 +108,37 @@ function simulateSave() {
           First select shows the placeholder while empty; reset puts it back.
         </span>
       </p>
+    </section>
+
+    <section class="demo">
+      <h2>BaseModal demo</h2>
+
+      <div class="demo__row">
+        <BaseButton @click="modalOpen = true">Open modal</BaseButton>
+      </div>
+
+      <p class="demo__counter">
+        Model value: <strong>{{ modalOpen ? 'open' : 'closed' }}</strong>
+        <span class="demo__hint">
+          Closes on ESC, backdrop click, the × button, and the footer buttons. Clicking inside
+          the panel must not close it.
+        </span>
+      </p>
+
+      <BaseModal v-model="modalOpen">
+        <template #header>Sample modal</template>
+
+        <p>
+          Body content goes in the default slot. Clicking this text, or anywhere inside the
+          white panel, should leave the modal open.
+        </p>
+        <p>The page behind must not scroll while this is open.</p>
+
+        <template #footer>
+          <BaseButton variant="secondary" @click="modalOpen = false">Cancel</BaseButton>
+          <BaseButton @click="modalOpen = false">Confirm</BaseButton>
+        </template>
+      </BaseModal>
     </section>
   </section>
 </template>
