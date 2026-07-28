@@ -1,14 +1,90 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { ref } from 'vue'
+import BaseButton from '../components/base/BaseButton.vue'
+
+const clicks = ref(0)
+const saving = ref(false)
+
+function handleDemoClick() {
+  clicks.value++
+}
+
+function simulateSave() {
+  saving.value = true
+  setTimeout(() => {
+    saving.value = false
+  }, 2000)
+}
+</script>
 
 <template>
   <section class="view">
     <h1>Tasks</h1>
     <p>Task board goes here.</p>
+
+    <section class="demo">
+      <h2>BaseButton demo</h2>
+
+      <div class="demo__row">
+        <BaseButton @click="handleDemoClick">Primary</BaseButton>
+        <BaseButton variant="secondary" @click="handleDemoClick">Secondary</BaseButton>
+        <BaseButton variant="danger" @click="handleDemoClick">Danger</BaseButton>
+      </div>
+
+      <div class="demo__row">
+        <BaseButton loading @click="handleDemoClick">Primary</BaseButton>
+        <BaseButton variant="secondary" loading @click="handleDemoClick">Secondary</BaseButton>
+        <BaseButton variant="danger" loading @click="handleDemoClick">Danger</BaseButton>
+      </div>
+
+      <div class="demo__row">
+        <BaseButton disabled @click="handleDemoClick">Disabled</BaseButton>
+        <BaseButton :loading="saving" @click="simulateSave">
+          {{ saving ? 'Saving…' : 'Click to load 2s' }}
+        </BaseButton>
+      </div>
+
+      <p class="demo__counter">
+        Clicks received: <strong>{{ clicks }}</strong>
+        <span class="demo__hint">(loading and disabled buttons must not increment this)</span>
+      </p>
+    </section>
   </section>
 </template>
 
 <style scoped>
 .view {
   padding: 1.5rem;
+}
+
+.demo {
+  margin-top: 2rem;
+  padding: 1.25rem;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  max-width: 40rem;
+}
+
+.demo h2 {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+}
+
+.demo__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.demo__counter {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.demo__hint {
+  display: block;
+  color: #6b7280;
+  font-size: 0.8rem;
 }
 </style>
