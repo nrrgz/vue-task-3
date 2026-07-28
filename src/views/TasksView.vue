@@ -2,6 +2,14 @@
 import { computed, ref } from 'vue'
 import BaseButton from '../components/base/BaseButton.vue'
 import BaseInput from '../components/base/BaseInput.vue'
+import BaseSelect from '../components/base/BaseSelect.vue'
+
+const status = ref('')
+const statusOptions = [
+  { label: 'To do', value: 'todo' },
+  { label: 'In progress', value: 'in-progress' },
+  { label: 'Done', value: 'done' },
+]
 
 const clicks = ref(0)
 const saving = ref(false)
@@ -76,6 +84,25 @@ function simulateSave() {
         Bound value: <strong>{{ title || '(empty)' }}</strong>
         <span class="demo__hint">
           Both inputs share one ref — typing in either updates the other and this line.
+        </span>
+      </p>
+    </section>
+
+    <section class="demo">
+      <h2>BaseSelect demo</h2>
+
+      <div class="demo__stack">
+        <BaseSelect v-model="status" :options="statusOptions" placeholder="Select a status" />
+
+        <BaseSelect v-model="status" :options="statusOptions" />
+
+        <BaseButton variant="secondary" @click="status = ''">Reset to placeholder</BaseButton>
+      </div>
+
+      <p class="demo__counter">
+        Bound value: <strong>{{ status || '(empty)' }}</strong>
+        <span class="demo__hint">
+          First select shows the placeholder while empty; reset puts it back.
         </span>
       </p>
     </section>
