@@ -45,7 +45,7 @@ defineEmits<{
   position: fixed;
   top: 1rem;
   right: 1rem;
-  z-index: 1100; 
+  z-index: 1100;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;

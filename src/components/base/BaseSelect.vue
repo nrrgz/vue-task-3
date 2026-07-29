@@ -7,6 +7,7 @@ interface SelectOption {
 interface Props {
   options: SelectOption[]
   placeholder?: string
+  invalid?: boolean
 }
 
 defineProps<Props>()
@@ -15,7 +16,12 @@ const model = defineModel<string>({ default: '' })
 </script>
 
 <template>
-  <select v-model="model" class="base-select" :class="{ 'is-placeholder': !model }">
+  <select
+    v-model="model"
+    class="base-select"
+    :class="{ 'is-placeholder': !model, 'has-error': invalid }"
+    :aria-invalid="invalid || undefined"
+  >
     <option v-if="placeholder" value="" disabled>{{ placeholder }}</option>
 
     <option v-for="option in options" :key="option.value" :value="option.value">
@@ -52,6 +58,15 @@ const model = defineModel<string>({ default: '' })
   outline: none;
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgb(37 99 235 / 0.15);
+}
+
+.base-select.has-error {
+  border-color: #dc2626;
+}
+
+.base-select.has-error:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgb(220 38 38 / 0.15);
 }
 
 .base-select:disabled {

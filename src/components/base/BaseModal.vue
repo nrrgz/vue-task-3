@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 
 const open = defineModel<boolean>({ default: false })
 
 const panel = ref<HTMLElement | null>(null)
+
+const titleId = useId()
 
 const token: ModalToken = Symbol('base-modal')
 
@@ -137,11 +139,12 @@ function unlockBodyScroll() {
         class="base-modal"
         role="dialog"
         aria-modal="true"
+        :aria-labelledby="$slots.header ? titleId : undefined"
         @click="handleBackdropClick"
       >
         <div ref="panel" class="base-modal__panel" tabindex="-1">
           <header class="base-modal__header">
-            <div class="base-modal__title">
+            <div :id="titleId" class="base-modal__title">
               <slot name="header" />
             </div>
 

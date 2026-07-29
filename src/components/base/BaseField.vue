@@ -12,7 +12,7 @@ const fieldId = useId()
 const errorId = `${fieldId}-error`
 
 defineSlots<{
-  default(props: { id: string; describedBy: string | undefined }): unknown
+  default(props: { id: string; describedBy: string | undefined; invalid: boolean }): unknown
 }>()
 </script>
 
@@ -20,7 +20,7 @@ defineSlots<{
   <div class="base-field">
     <label v-if="label" class="base-field__label" :for="fieldId">{{ label }}</label>
 
-    <slot :id="fieldId" :described-by="error ? errorId : undefined" />
+    <slot :id="fieldId" :described-by="error ? errorId : undefined" :invalid="Boolean(error)" />
 
     <p v-if="error" :id="errorId" class="base-field__error">{{ error }}</p>
   </div>

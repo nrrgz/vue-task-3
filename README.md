@@ -21,8 +21,12 @@ Nothing in `components/base/` imports a store, a type from `types/`, or the word
 each component takes generic props and slots only. `UsersView` is the proof: it renders a
 completely different dataset through the same components, unmodified.
 
-Two things worth calling out for a reviewer:
+Three things worth calling out for a reviewer:
 
+- **`BaseToast`** is a base component beyond the required five. It is a pure renderer: it
+  takes a `toasts` array and emits `dismiss`, and imports no store of its own — `App.vue`
+  wires it to the notifications store. That keeps the toast *stack* reusable in a project
+  with a different notification store, or none at all.
 - **`BaseField`** is a small extra base component (not in the original brief). It owns the
   label / error / `aria-describedby` wiring that `BaseInput` already had built in, so
   `BaseSelect` and other bare controls can reuse it instead of each view re-implementing

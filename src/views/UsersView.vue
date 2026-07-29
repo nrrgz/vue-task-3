@@ -32,7 +32,7 @@ const columns = [
   { key: 'name', label: 'Name' },
   { key: 'email', label: 'Email' },
   { key: 'role', label: 'Role' },
-  { key: 'actions', label: '' },
+  { key: 'actions', label: 'Actions', hideLabel: true },
 ]
 
 const roleOptions: { label: string; value: UserRole }[] = [
@@ -48,7 +48,6 @@ const roleFilter = ref<string>('all')
 const visibleUsers = computed(() =>
   roleFilter.value === 'all' ? users.value : users.value.filter((u) => u.role === roleFilter.value),
 )
-
 
 const inviteOpen = ref(false)
 const inviteFormId = useId()
@@ -100,7 +99,6 @@ function submitInvite() {
   inviteOpen.value = false
   notify('success', `Invited ${name.trim()}.`)
 }
-
 
 const userPendingRemoval = ref<User | null>(null)
 
@@ -164,11 +162,12 @@ function confirmRemove() {
           placeholder="name@company.com"
         />
 
-        <BaseField label="Role" :error="errors.role" v-slot="{ id, describedBy }">
+        <BaseField label="Role" :error="errors.role" v-slot="{ id, describedBy, invalid }">
           <BaseSelect
             :id="id"
             v-model="invite.role"
             :aria-describedby="describedBy"
+            :invalid="invalid"
             :options="roleOptions"
             placeholder="Select a role"
           />

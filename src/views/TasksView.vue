@@ -25,7 +25,7 @@ const columns = [
   { key: 'assigneeEmail', label: 'Assignee', sortable: true },
   { key: 'status', label: 'Status', sortable: true },
   { key: 'priority', label: 'Priority', sortable: true },
-  { key: 'actions', label: '' },
+  { key: 'actions', label: 'Actions', hideLabel: true },
 ]
 
 const statusFilterOptions: { label: string; value: StatusFilter }[] = [
@@ -153,7 +153,7 @@ function confirmDelete() {
 
     <BaseModal v-model="formModalOpen">
       <template #header>{{ taskBeingEdited ? 'Edit task' : 'New task' }}</template>
-      
+
       <TaskForm
         :initial-task="taskBeingEdited ?? undefined"
         @submit="handleSubmit"

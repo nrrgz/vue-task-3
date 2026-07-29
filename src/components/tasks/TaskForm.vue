@@ -110,21 +110,23 @@ function handleSubmit(): void {
       placeholder="name@company.com"
     />
 
-    <BaseField label="Status" :error="errors.status" v-slot="{ id, describedBy }">
+    <BaseField label="Status" :error="errors.status" v-slot="{ id, describedBy, invalid }">
       <BaseSelect
         :id="id"
         v-model="values.status"
         :aria-describedby="describedBy"
+        :invalid="invalid"
         :options="statusOptions"
         placeholder="Select a status"
       />
     </BaseField>
 
-    <BaseField label="Priority" :error="errors.priority" v-slot="{ id, describedBy }">
+    <BaseField label="Priority" :error="errors.priority" v-slot="{ id, describedBy, invalid }">
       <BaseSelect
         :id="id"
         v-model="values.priority"
         :aria-describedby="describedBy"
+        :invalid="invalid"
         :options="priorityOptions"
         placeholder="Select a priority"
       />

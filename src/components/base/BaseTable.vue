@@ -5,6 +5,7 @@ interface Column {
   key: string
   label: string
   sortable?: boolean
+  hideLabel?: boolean
 }
 
 interface Props {
@@ -106,6 +107,8 @@ function ariaSortFor(column: Column): 'ascending' | 'descending' | 'none' | unde
             }}</span>
           </button>
 
+          <span v-else-if="column.hideLabel" class="base-table__sr-only">{{ column.label }}</span>
+
           <template v-else>{{ column.label }}</template>
         </th>
       </tr>
@@ -174,6 +177,18 @@ function ariaSortFor(column: Column): 'ascending' | 'descending' | 'none' | unde
 .base-table__sort:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 1px;
+}
+
+.base-table__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
 }
 
 .base-table__indicator {

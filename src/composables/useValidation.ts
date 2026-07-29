@@ -26,16 +26,6 @@ export function email(message = 'Enter a valid email address'): ValidationRule<s
   }
 }
 
-export function minLength(length: number, message?: string): ValidationRule<string> {
-  return (value) => {
-    if (!value) return undefined
-    return value.trim().length >= length
-      ? undefined
-      : (message ?? `Must be at least ${length} characters`)
-  }
-}
-
-
 export function useValidation<TValues extends Record<string, unknown>>(
   values: Ref<TValues>,
   rules: ValidationRules<TValues>,
@@ -76,7 +66,6 @@ export function useValidation<TValues extends Record<string, unknown>>(
   function reset(): void {
     errors.value = {}
   }
-
 
   watch(
     values,

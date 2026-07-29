@@ -7,5 +7,5 @@ export interface Task {
   assigneeEmail: string
   status: TaskStatus
   priority: TaskPriority
-  createdAt: string // ISO
+  createdAt: string 
 }
