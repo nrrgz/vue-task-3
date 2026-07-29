@@ -4,6 +4,15 @@ import BaseButton from '../components/base/BaseButton.vue'
 import BaseInput from '../components/base/BaseInput.vue'
 import BaseModal from '../components/base/BaseModal.vue'
 import BaseSelect from '../components/base/BaseSelect.vue'
+import BaseTable from '../components/base/BaseTable.vue'
+import { seedTasks } from '../mock/tasks'
+
+const taskColumns = [
+  { key: 'title', label: 'Title' },
+  { key: 'assigneeEmail', label: 'Assignee' },
+  { key: 'status', label: 'Status' },
+  { key: 'priority', label: 'Priority' },
+]
 
 const modalOpen = ref(false)
 
@@ -140,6 +149,23 @@ function simulateSave() {
         </template>
       </BaseModal>
     </section>
+
+    <section class="demo demo--wide">
+      <h2>BaseTable demo</h2>
+
+      <BaseTable :columns="taskColumns" :rows="seedTasks">
+        <template #cell-status="{ value }">
+          <span class="status" :class="`status--${value}`">{{ value }}</span>
+        </template>
+      </BaseTable>
+
+      <p class="demo__counter">
+        Rows: <strong>{{ seedTasks.length }}</strong>
+        <span class="demo__hint">
+          Only Status is customised; Title, Assignee and Priority use the plain-text fallback.
+        </span>
+      </p>
+    </section>
   </section>
 </template>
 
@@ -185,5 +211,33 @@ function simulateSave() {
   display: block;
   color: #6b7280;
   font-size: 0.8rem;
+}
+
+.demo--wide {
+  max-width: 52rem;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status--todo {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.status--in-progress {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status--done {
+  background-color: #dcfce7;
+  color: #15803d;
 }
 </style>
