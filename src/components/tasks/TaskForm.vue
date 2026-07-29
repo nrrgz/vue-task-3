@@ -94,8 +94,6 @@ function handleSubmit(): void {
     priority,
   })
 }
-
-defineExpose({ submit: handleSubmit })
 </script>
 
 <template>
