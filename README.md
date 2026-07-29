@@ -9,12 +9,30 @@ Vue 3 (`<script setup>`) · TypeScript · Vite · Pinia · vue-router — no UI 
 components hand-built.
 
 ## Features
-- Base component library: `BaseButton`, `BaseInput`, `BaseSelect`, `BaseModal`, `BaseTable`, `BaseToast`
+- Base component library: `BaseButton`, `BaseInput`, `BaseSelect`, `BaseField`, `BaseModal`, `BaseTable`, `BaseToast`
 - Custom table cells via **scoped slots**; two-way binding via **`defineModel()`**
 - Pinia stores for tasks (CRUD + filtering getter) and toast notifications
 - Create / edit / delete tasks with a stacked confirmation modal
 - Hand-rolled form validation (`useValidation` composable) — required fields + email format
 - Status / priority filtering driven by a store getter
+
+## Notes on the base layer
+Nothing in `components/base/` imports a store, a type from `types/`, or the word "task" —
+each component takes generic props and slots only. `UsersView` is the proof: it renders a
+completely different dataset through the same components, unmodified.
+
+Two things worth calling out for a reviewer:
+
+- **`BaseField`** is a small extra base component (not in the original brief). It owns the
+  label / error / `aria-describedby` wiring that `BaseInput` already had built in, so
+  `BaseSelect` and other bare controls can reuse it instead of each view re-implementing
+  that markup. It replaced five hand-rolled copies across `TaskForm`, `TasksView` and
+  `UsersView`.
+- **`BaseButton`'s `loading` prop** is implemented (spinner + clicks blocked + `aria-busy`)
+  but unused in the app, because the data layer is a synchronous local mock — there is
+  nothing to await. Adding an artificial delay just to show it off would be worse code than
+  leaving it dormant, so it stays part of the component's contract for the first real async
+  call site.
 
 ## Getting started
 ```bash

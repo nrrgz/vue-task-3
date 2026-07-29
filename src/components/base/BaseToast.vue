@@ -1,10 +1,19 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { useNotificationStore } from '../../stores/notifications'
+interface ToastItem {
+  id: string
+  type: 'success' | 'error'
+  message: string
+}
 
-const notificationStore = useNotificationStore()
-const { toasts } = storeToRefs(notificationStore)
-const { dismiss } = notificationStore
+interface Props {
+  toasts: ToastItem[]
+}
+
+defineProps<Props>()
+
+defineEmits<{
+  dismiss: [id: string]
+}>()
 </script>
 
 <template>
@@ -22,7 +31,7 @@ const { dismiss } = notificationStore
           type="button"
           class="base-toast__close"
           aria-label="Dismiss notification"
-          @click="dismiss(toast.id)"
+          @click="$emit('dismiss', toast.id)"
         >
           &times;
         </button>
