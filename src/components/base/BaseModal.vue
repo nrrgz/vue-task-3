@@ -59,31 +59,76 @@ function unlockBodyScroll() {
 
 <template>
   <Teleport to="body">
-    <div v-if="open" class="base-modal" role="dialog" aria-modal="true" @click="handleBackdropClick">
-      <div class="base-modal__panel">
-        <header class="base-modal__header">
-          <div class="base-modal__title">
-            <slot name="header" />
+    <Transition name="base-modal">
+      <div
+        v-if="open"
+        class="base-modal"
+        role="dialog"
+        aria-modal="true"
+        @click="handleBackdropClick"
+      >
+        <div class="base-modal__panel">
+          <header class="base-modal__header">
+            <div class="base-modal__title">
+              <slot name="header" />
+            </div>
+
+            <button type="button" class="base-modal__close" aria-label="Close" @click="close">
+              &times;
+            </button>
+          </header>
+
+          <div class="base-modal__body">
+            <slot />
           </div>
 
-          <button type="button" class="base-modal__close" aria-label="Close" @click="close">
-            &times;
-          </button>
-        </header>
-
-        <div class="base-modal__body">
-          <slot />
+          <footer v-if="$slots.footer" class="base-modal__footer">
+            <slot name="footer" />
+          </footer>
         </div>
-
-        <footer v-if="$slots.footer" class="base-modal__footer">
-          <slot name="footer" />
-        </footer>
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>
 
 <style scoped>
+.base-modal-enter-active,
+.base-modal-leave-active {
+  transition: opacity 0.18s ease;
+}
+
+.base-modal-enter-active .base-modal__panel,
+.base-modal-leave-active .base-modal__panel {
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.base-modal-enter-from,
+.base-modal-leave-to {
+  opacity: 0;
+}
+
+.base-modal-enter-from .base-modal__panel,
+.base-modal-leave-to .base-modal__panel {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .base-modal-enter-active,
+  .base-modal-leave-active,
+  .base-modal-enter-active .base-modal__panel,
+  .base-modal-leave-active .base-modal__panel {
+    transition-duration: 0.01ms;
+  }
+
+  .base-modal-enter-from .base-modal__panel,
+  .base-modal-leave-to .base-modal__panel {
+    transform: none;
+  }
+}
+
 .base-modal {
   position: fixed;
   inset: 0;
