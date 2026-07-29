@@ -5,10 +5,22 @@ import BaseInput from '../components/base/BaseInput.vue'
 import BaseModal from '../components/base/BaseModal.vue'
 import BaseSelect from '../components/base/BaseSelect.vue'
 import BaseTable from '../components/base/BaseTable.vue'
+import StatusBadge from '../components/tasks/StatusBadge.vue'
+import TaskForm from '../components/tasks/TaskForm.vue'
 import { seedTasks } from '../mock/tasks'
 import { useNotificationStore } from '../stores/notifications'
+import type { TaskDraft } from '../stores/tasks'
 
 const { notify } = useNotificationStore()
+
+const editing = ref(false)
+const initialTask = computed(() => (editing.value ? seedTasks[0] : undefined))
+const lastSubmitted = ref<TaskDraft | null>(null)
+
+function handleFormSubmit(draft: TaskDraft) {
+  lastSubmitted.value = draft
+  notify('success', `Form emitted a valid draft for "${draft.title}".`)
+}
 
 const taskColumns = [
   { key: 'title', label: 'Title' },
@@ -174,12 +186,34 @@ function simulateSave() {
       </p>
     </section>
 
+    <section class="demo">
+      <h2>TaskForm demo</h2>
+
+      <div class="demo__row">
+        <BaseButton variant="secondary" @click="editing = !editing">
+          {{ editing ? 'Switch to create mode' : 'Switch to edit mode (seed row 1)' }}
+        </BaseButton>
+      </div>
+
+      <TaskForm :initial-task="initialTask" @submit="handleFormSubmit" @cancel="editing = false" />
+
+      <p class="demo__counter">
+        Last emitted payload:
+        <strong>{{ lastSubmitted ? JSON.stringify(lastSubmitted) : '(none)' }}</strong>
+        <span class="demo__hint">
+          Submitting empty flags every field; a bad email flags only that one. Switching to
+          edit mode refills the fields and clears the errors.
+        </span>
+      </p>
+    </section>
+
     <section class="demo demo--wide">
       <h2>BaseTable demo</h2>
 
       <BaseTable :columns="taskColumns" :rows="seedTasks">
-        <template #cell-status="{ value }">
-          <span class="status" :class="`status--${value}`">{{ value }}</span>
+        <!-- `row` is typed as Task by the generic slot, so row.status is a TaskStatus. -->
+        <template #cell-status="{ row }">
+          <StatusBadge :status="row.status" />
         </template>
       </BaseTable>
 
@@ -241,27 +275,4 @@ function simulateSave() {
   max-width: 52rem;
 }
 
-.status {
-  display: inline-block;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: capitalize;
-}
-
-.status--todo {
-  background-color: #e5e7eb;
-  color: #374151;
-}
-
-.status--in-progress {
-  background-color: #dbeafe;
-  color: #1d4ed8;
-}
-
-.status--done {
-  background-color: #dcfce7;
-  color: #15803d;
-}
 </style>
