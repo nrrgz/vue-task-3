@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import BaseButton from '../components/base/BaseButton.vue'
+import BaseField from '../components/base/BaseField.vue'
 import BaseModal from '../components/base/BaseModal.vue'
 import BaseSelect from '../components/base/BaseSelect.vue'
 import BaseTable from '../components/base/BaseTable.vue'
@@ -120,15 +121,13 @@ function confirmDelete() {
     </header>
 
     <div class="filters">
-      <label class="filters__field">
-        <span class="filters__label">Status</span>
-        <BaseSelect v-model="statusFilter" :options="statusFilterOptions" />
-      </label>
+      <BaseField class="filters__field" label="Status" v-slot="{ id }">
+        <BaseSelect :id="id" v-model="statusFilter" :options="statusFilterOptions" />
+      </BaseField>
 
-      <label class="filters__field">
-        <span class="filters__label">Priority</span>
-        <BaseSelect v-model="priorityFilter" :options="priorityFilterOptions" />
-      </label>
+      <BaseField class="filters__field" label="Priority" v-slot="{ id }">
+        <BaseSelect :id="id" v-model="priorityFilter" :options="priorityFilterOptions" />
+      </BaseField>
 
       <BaseButton v-if="isFiltered" variant="secondary" @click="clearFilters">
         Clear filters
@@ -137,7 +136,7 @@ function confirmDelete() {
       <p class="filters__count">{{ filteredTasks.length }} shown</p>
     </div>
 
-    <BaseTable :columns="columns" :rows="filteredTasks">
+    <BaseTable :columns="columns" :rows="filteredTasks" row-key="id">
       <template #cell-status="{ row }">
         <StatusBadge :status="row.status" />
       </template>
@@ -206,16 +205,7 @@ function confirmDelete() {
 }
 
 .filters__field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
   min-width: 11rem;
-}
-
-.filters__label {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: #6b7280;
 }
 
 .filters__count {

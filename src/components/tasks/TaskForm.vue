@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, useId, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import BaseButton from '../base/BaseButton.vue'
+import BaseField from '../base/BaseField.vue'
 import BaseInput from '../base/BaseInput.vue'
 import BaseSelect from '../base/BaseSelect.vue'
 import { email, required, useValidation } from '../../composables/useValidation'
@@ -70,9 +71,6 @@ watch(
 const isEditing = computed(() => props.initialTask !== undefined)
 const submitLabel = computed(() => (isEditing.value ? 'Save changes' : 'Add task'))
 
-const statusId = useId()
-const priorityId = useId()
-
 function isTaskStatus(value: string): value is TaskStatus {
   return statusOptions.some((option) => option.value === value)
 }
@@ -112,31 +110,29 @@ function handleSubmit(): void {
       placeholder="name@company.com"
     />
 
-    <div class="task-form__field">
-      <label class="task-form__label" :for="statusId">Status</label>
+    <BaseField label="Status" :error="errors.status" v-slot="{ id, describedBy }">
       <BaseSelect
-        :id="statusId"
+        :id="id"
         v-model="values.status"
+        :aria-describedby="describedBy"
         :options="statusOptions"
         placeholder="Select a status"
       />
-      <p v-if="errors.status" class="task-form__error">{{ errors.status }}</p>
-    </div>
+    </BaseField>
 
-    <div class="task-form__field">
-      <label class="task-form__label" :for="priorityId">Priority</label>
+    <BaseField label="Priority" :error="errors.priority" v-slot="{ id, describedBy }">
       <BaseSelect
-        :id="priorityId"
+        :id="id"
         v-model="values.priority"
+        :aria-describedby="describedBy"
         :options="priorityOptions"
         placeholder="Select a priority"
       />
-      <p v-if="errors.priority" class="task-form__error">{{ errors.priority }}</p>
-    </div>
+    </BaseField>
 
     <div class="task-form__actions">
       <BaseButton variant="secondary" @click="emit('cancel')">Cancel</BaseButton>
-      <BaseButton @click="handleSubmit">{{ submitLabel }}</BaseButton>
+      <BaseButton type="submit">{{ submitLabel }}</BaseButton>
     </div>
   </form>
 </template>
@@ -146,24 +142,6 @@ function handleSubmit(): void {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-.task-form__field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.task-form__label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.task-form__error {
-  margin: 0;
-  font-size: 0.8rem;
-  color: #dc2626;
 }
 
 .task-form__actions {

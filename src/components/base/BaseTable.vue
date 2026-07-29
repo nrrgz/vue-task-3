@@ -10,6 +10,7 @@ interface Column {
 interface Props {
   columns: Column[]
   rows: T[]
+  rowKey?: string
 }
 
 const props = defineProps<Props>()
@@ -21,6 +22,13 @@ defineSlots<{
 
 function cellValue(row: T, key: string): unknown {
   return (row as Record<string, unknown>)[key]
+}
+
+function keyFor(row: T, index: number): string | number {
+  if (props.rowKey === undefined) return index
+
+  const value = cellValue(row, props.rowKey)
+  return typeof value === 'string' || typeof value === 'number' ? value : index
 }
 
 type SortDirection = 'asc' | 'desc'
@@ -104,7 +112,7 @@ function ariaSortFor(column: Column): 'ascending' | 'descending' | 'none' | unde
     </thead>
 
     <tbody>
-      <tr v-for="(row, rowIndex) in sortedRows" :key="rowIndex">
+      <tr v-for="(row, rowIndex) in sortedRows" :key="keyFor(row, rowIndex)">
         <td v-for="column in columns" :key="column.key">
           <slot :name="`cell-${column.key}`" :row="row" :value="cellValue(row, column.key)">
             {{ cellValue(row, column.key) }}

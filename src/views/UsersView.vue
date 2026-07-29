@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, useId, watch } from 'vue'
 import BaseButton from '../components/base/BaseButton.vue'
+import BaseField from '../components/base/BaseField.vue'
 import BaseInput from '../components/base/BaseInput.vue'
 import BaseModal from '../components/base/BaseModal.vue'
 import BaseSelect from '../components/base/BaseSelect.vue'
@@ -50,7 +51,7 @@ const visibleUsers = computed(() =>
 
 
 const inviteOpen = ref(false)
-const roleFieldId = useId()
+const inviteFormId = useId()
 
 type InviteValues = {
   name: string
@@ -128,15 +129,14 @@ function confirmRemove() {
     </header>
 
     <div class="filters">
-      <label class="filters__field">
-        <span class="filters__label">Role</span>
-        <BaseSelect v-model="roleFilter" :options="roleFilterOptions" />
-      </label>
+      <BaseField class="filters__field" label="Role" v-slot="{ id }">
+        <BaseSelect :id="id" v-model="roleFilter" :options="roleFilterOptions" />
+      </BaseField>
 
       <p class="filters__count">{{ visibleUsers.length }} shown</p>
     </div>
 
-    <BaseTable :columns="columns" :rows="visibleUsers">
+    <BaseTable :columns="columns" :rows="visibleUsers" row-key="id">
       <!-- Same dynamic-slot mechanism as the tasks board, different column entirely. -->
       <template #cell-role="{ value }">
         <span class="role" :class="`role--${value}`">{{ value }}</span>
@@ -154,7 +154,7 @@ function confirmRemove() {
     <BaseModal v-model="inviteOpen">
       <template #header>Invite user</template>
 
-      <form class="invite-form" novalidate @submit.prevent="submitInvite">
+      <form :id="inviteFormId" class="invite-form" novalidate @submit.prevent="submitInvite">
         <BaseInput v-model="invite.name" label="Name" :error="errors.name" placeholder="Full name" />
 
         <BaseInput
@@ -164,21 +164,20 @@ function confirmRemove() {
           placeholder="name@company.com"
         />
 
-        <div class="invite-form__field">
-          <label class="invite-form__label" :for="roleFieldId">Role</label>
+        <BaseField label="Role" :error="errors.role" v-slot="{ id, describedBy }">
           <BaseSelect
-            :id="roleFieldId"
+            :id="id"
             v-model="invite.role"
+            :aria-describedby="describedBy"
             :options="roleOptions"
             placeholder="Select a role"
           />
-          <p v-if="errors.role" class="invite-form__error">{{ errors.role }}</p>
-        </div>
+        </BaseField>
       </form>
 
       <template #footer>
         <BaseButton variant="secondary" @click="inviteOpen = false">Cancel</BaseButton>
-        <BaseButton @click="submitInvite">Send invite</BaseButton>
+        <BaseButton type="submit" :form="inviteFormId">Send invite</BaseButton>
       </template>
     </BaseModal>
 
@@ -226,16 +225,7 @@ function confirmRemove() {
 }
 
 .filters__field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
   min-width: 11rem;
-}
-
-.filters__label {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: #6b7280;
 }
 
 .filters__count {
@@ -277,24 +267,6 @@ function confirmRemove() {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-.invite-form__field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.invite-form__label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.invite-form__error {
-  margin: 0;
-  font-size: 0.8rem;
-  color: #dc2626;
 }
 
 .remove-prompt {

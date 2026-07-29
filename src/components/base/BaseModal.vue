@@ -1,7 +1,13 @@
 <script setup lang="ts">
-import { onBeforeUnmount, watch } from 'vue'
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 const open = defineModel<boolean>({ default: false })
+
+const panel = ref<HTMLElement | null>(null)
+
+const token: ModalToken = Symbol('base-modal')
+
+let previouslyFocused: HTMLElement | null = null
 
 function close() {
   open.value = false
@@ -11,24 +17,73 @@ function handleBackdropClick(event: MouseEvent) {
   if (event.target === event.currentTarget) close()
 }
 
+function isTopmost(): boolean {
+  return modalStack[modalStack.length - 1] === token
+}
+
 function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') close()
+  if (!isTopmost()) return
+
+  if (event.key === 'Escape') {
+    close()
+    return
+  }
+
+  if (event.key !== 'Tab') return
+
+  const root = panel.value
+  if (!root) return
+
+  const items = focusableWithin(root)
+
+  if (items.length === 0) {
+    event.preventDefault()
+    return
+  }
+
+  const first = items[0]
+  const last = items[items.length - 1]
+  const active = document.activeElement
+  const inside = active instanceof HTMLElement && root.contains(active)
+
+  if (event.shiftKey && (!inside || active === first)) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && (!inside || active === last)) {
+    event.preventDefault()
+    first.focus()
+  }
 }
 
 let isLocked = false
 
-function lock() {
+async function lock() {
   if (isLocked) return
   isLocked = true
+
+  previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
+
+  modalStack.push(token)
   lockBodyScroll()
   window.addEventListener('keydown', handleKeydown)
+
+  await nextTick()
+  const root = panel.value
+  if (root) (focusableWithin(root)[0] ?? root).focus()
 }
 
 function unlock() {
   if (!isLocked) return
   isLocked = false
+
+  const index = modalStack.indexOf(token)
+  if (index !== -1) modalStack.splice(index, 1)
+
   unlockBodyScroll()
   window.removeEventListener('keydown', handleKeydown)
+
+  if (previouslyFocused && document.contains(previouslyFocused)) previouslyFocused.focus()
+  previouslyFocused = null
 }
 
 watch(open, (isOpen) => (isOpen ? lock() : unlock()), { immediate: true })
@@ -37,6 +92,23 @@ onBeforeUnmount(unlock)
 </script>
 
 <script lang="ts">
+
+export type ModalToken = symbol
+
+const modalStack: ModalToken[] = []
+
+const FOCUSABLE =
+  'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"]), [contenteditable]'
+
+function focusableWithin(root: HTMLElement): HTMLElement[] {
+  return [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+    (el) =>
+      !el.hasAttribute('disabled') &&
+      el.getAttribute('aria-hidden') !== 'true' &&
+      (el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0),
+  )
+}
+
 let lockCount = 0
 let previousOverflow = ''
 
@@ -67,7 +139,7 @@ function unlockBodyScroll() {
         aria-modal="true"
         @click="handleBackdropClick"
       >
-        <div class="base-modal__panel">
+        <div ref="panel" class="base-modal__panel" tabindex="-1">
           <header class="base-modal__header">
             <div class="base-modal__title">
               <slot name="header" />

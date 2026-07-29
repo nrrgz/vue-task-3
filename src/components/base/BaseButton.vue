@@ -1,14 +1,17 @@
 <script setup lang="ts">
 type ButtonVariant = 'primary' | 'secondary' | 'danger'
+type ButtonType = 'button' | 'submit' | 'reset'
 
 interface Props {
   variant?: ButtonVariant
+  type?: ButtonType
   loading?: boolean
   disabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   variant: 'primary',
+  type: 'button',
   loading: false,
   disabled: false,
 })
@@ -25,7 +28,7 @@ function handleClick(event: MouseEvent) {
 
 <template>
   <button
-    type="button"
+    :type="type"
     class="base-button"
     :class="[`base-button--${variant}`, { 'is-loading': loading }]"
     :disabled="disabled || loading"
