@@ -6,6 +6,9 @@ import BaseModal from '../components/base/BaseModal.vue'
 import BaseSelect from '../components/base/BaseSelect.vue'
 import BaseTable from '../components/base/BaseTable.vue'
 import { seedTasks } from '../mock/tasks'
+import { useNotificationStore } from '../stores/notifications'
+
+const { notify } = useNotificationStore()
 
 const taskColumns = [
   { key: 'title', label: 'Title' },
@@ -148,6 +151,27 @@ function simulateSave() {
           <BaseButton @click="modalOpen = false">Confirm</BaseButton>
         </template>
       </BaseModal>
+    </section>
+
+    <section class="demo">
+      <h2>BaseToast demo</h2>
+
+      <div class="demo__row">
+        <BaseButton @click="notify('success', 'Task saved successfully.')">
+          Fire success toast
+        </BaseButton>
+        <BaseButton variant="danger" @click="notify('error', 'Could not save the task.')">
+          Fire error toast
+        </BaseButton>
+      </div>
+
+      <p class="demo__counter">
+        Toasts stack top-right and auto-dismiss after 3s.
+        <span class="demo__hint">
+          The × closes one immediately. BaseToast is mounted once in App.vue — every view
+          shares the same store instance.
+        </span>
+      </p>
     </section>
 
     <section class="demo demo--wide">

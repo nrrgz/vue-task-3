@@ -1,6 +1,10 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import BaseToast from './components/base/BaseToast.vue'
+</script>
 
 <template>
+  <BaseToast />
+
   <header class="app-header">
     <nav>
       <RouterLink to="/tasks">Tasks</RouterLink>
