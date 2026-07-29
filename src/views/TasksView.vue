@@ -20,10 +20,10 @@ const { filteredTasks, filters } = storeToRefs(taskStore)
 const { addTask, updateTask, removeTask } = taskStore
 
 const columns = [
-  { key: 'title', label: 'Title' },
-  { key: 'assigneeEmail', label: 'Assignee' },
-  { key: 'status', label: 'Status' },
-  { key: 'priority', label: 'Priority' },
+  { key: 'title', label: 'Title', sortable: true },
+  { key: 'assigneeEmail', label: 'Assignee', sortable: true },
+  { key: 'status', label: 'Status', sortable: true },
+  { key: 'priority', label: 'Priority', sortable: true },
   { key: 'actions', label: '' },
 ]
 
