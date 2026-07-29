@@ -1,278 +1,236 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import BaseButton from '../components/base/BaseButton.vue'
-import BaseInput from '../components/base/BaseInput.vue'
 import BaseModal from '../components/base/BaseModal.vue'
 import BaseSelect from '../components/base/BaseSelect.vue'
 import BaseTable from '../components/base/BaseTable.vue'
 import StatusBadge from '../components/tasks/StatusBadge.vue'
 import TaskForm from '../components/tasks/TaskForm.vue'
-import { seedTasks } from '../mock/tasks'
-import { useNotificationStore } from '../stores/notifications'
-import type { TaskDraft } from '../stores/tasks'
+import {
+  useTaskStore,
+  type PriorityFilter,
+  type StatusFilter,
+  type TaskDraft,
+} from '../stores/tasks'
+import type { Task } from '../types/task'
 
-const { notify } = useNotificationStore()
+const taskStore = useTaskStore()
+const { filteredTasks, filters } = storeToRefs(taskStore)
+const { addTask, updateTask, removeTask } = taskStore
 
-const editing = ref(false)
-const initialTask = computed(() => (editing.value ? seedTasks[0] : undefined))
-const lastSubmitted = ref<TaskDraft | null>(null)
-
-function handleFormSubmit(draft: TaskDraft) {
-  lastSubmitted.value = draft
-  notify('success', `Form emitted a valid draft for "${draft.title}".`)
-}
-
-const taskColumns = [
+const columns = [
   { key: 'title', label: 'Title' },
   { key: 'assigneeEmail', label: 'Assignee' },
   { key: 'status', label: 'Status' },
   { key: 'priority', label: 'Priority' },
+  { key: 'actions', label: '' },
 ]
 
-const modalOpen = ref(false)
-
-const status = ref('')
-const statusOptions = [
+const statusFilterOptions: { label: string; value: StatusFilter }[] = [
+  { label: 'All statuses', value: 'all' },
   { label: 'To do', value: 'todo' },
   { label: 'In progress', value: 'in-progress' },
   { label: 'Done', value: 'done' },
 ]
 
-const clicks = ref(0)
-const saving = ref(false)
+const priorityFilterOptions: { label: string; value: PriorityFilter }[] = [
+  { label: 'All priorities', value: 'all' },
+  { label: 'Low', value: 'low' },
+  { label: 'Medium', value: 'medium' },
+  { label: 'High', value: 'high' },
+]
 
-const title = ref('')
-const titleError = computed(() =>
-  title.value.length > 0 && title.value.length < 3 ? 'Must be at least 3 characters' : '',
-)
-
-function handleDemoClick() {
-  clicks.value++
+function isStatusFilter(value: string): value is StatusFilter {
+  return statusFilterOptions.some((option) => option.value === value)
 }
 
-function simulateSave() {
-  saving.value = true
-  setTimeout(() => {
-    saving.value = false
-  }, 2000)
+function isPriorityFilter(value: string): value is PriorityFilter {
+  return priorityFilterOptions.some((option) => option.value === value)
+}
+
+const statusFilter = computed<string>({
+  get: () => filters.value.status,
+  set: (value) => {
+    if (isStatusFilter(value)) filters.value.status = value
+  },
+})
+
+const priorityFilter = computed<string>({
+  get: () => filters.value.priority,
+  set: (value) => {
+    if (isPriorityFilter(value)) filters.value.priority = value
+  },
+})
+
+const isFiltered = computed(
+  () => filters.value.status !== 'all' || filters.value.priority !== 'all',
+)
+
+function clearFilters() {
+  filters.value.status = 'all'
+  filters.value.priority = 'all'
+}
+
+const formModalOpen = ref(false)
+const taskBeingEdited = ref<Task | null>(null)
+
+function openCreate() {
+  taskBeingEdited.value = null
+  formModalOpen.value = true
+}
+
+function openEdit(task: Task) {
+  taskBeingEdited.value = task
+  formModalOpen.value = true
+}
+
+function handleSubmit(draft: TaskDraft) {
+  const editing = taskBeingEdited.value
+
+  if (editing) updateTask(editing.id, draft)
+  else addTask(draft)
+
+  formModalOpen.value = false
+  taskBeingEdited.value = null
+}
+
+const taskPendingDelete = ref<Task | null>(null)
+const deleteModalOpen = computed<boolean>({
+  get: () => taskPendingDelete.value !== null,
+  set: (open) => {
+    if (!open) taskPendingDelete.value = null
+  },
+})
+
+function confirmDelete() {
+  const target = taskPendingDelete.value
+  if (!target) return
+
+  removeTask(target.id)
+  taskPendingDelete.value = null
 }
 </script>
 
 <template>
   <section class="view">
-    <h1>Tasks</h1>
-    <p>Task board goes here.</p>
+    <header class="view__header">
+      <h1>Tasks</h1>
+      <BaseButton @click="openCreate">New task</BaseButton>
+    </header>
 
-    <section class="demo">
-      <h2>BaseButton demo</h2>
+    <div class="filters">
+      <label class="filters__field">
+        <span class="filters__label">Status</span>
+        <BaseSelect v-model="statusFilter" :options="statusFilterOptions" />
+      </label>
 
-      <div class="demo__row">
-        <BaseButton @click="handleDemoClick">Primary</BaseButton>
-        <BaseButton variant="secondary" @click="handleDemoClick">Secondary</BaseButton>
-        <BaseButton variant="danger" @click="handleDemoClick">Danger</BaseButton>
-      </div>
+      <label class="filters__field">
+        <span class="filters__label">Priority</span>
+        <BaseSelect v-model="priorityFilter" :options="priorityFilterOptions" />
+      </label>
 
-      <div class="demo__row">
-        <BaseButton loading @click="handleDemoClick">Primary</BaseButton>
-        <BaseButton variant="secondary" loading @click="handleDemoClick">Secondary</BaseButton>
-        <BaseButton variant="danger" loading @click="handleDemoClick">Danger</BaseButton>
-      </div>
+      <BaseButton v-if="isFiltered" variant="secondary" @click="clearFilters">
+        Clear filters
+      </BaseButton>
 
-      <div class="demo__row">
-        <BaseButton disabled @click="handleDemoClick">Disabled</BaseButton>
-        <BaseButton :loading="saving" @click="simulateSave">
-          {{ saving ? 'Saving…' : 'Click to load 2s' }}
-        </BaseButton>
-      </div>
+      <p class="filters__count">{{ filteredTasks.length }} shown</p>
+    </div>
 
-      <p class="demo__counter">
-        Clicks received: <strong>{{ clicks }}</strong>
-        <span class="demo__hint">(loading and disabled buttons must not increment this)</span>
-      </p>
-    </section>
+    <BaseTable :columns="columns" :rows="filteredTasks">
+      <template #cell-status="{ row }">
+        <StatusBadge :status="row.status" />
+      </template>
 
-    <section class="demo">
-      <h2>BaseInput demo</h2>
+      <template #cell-actions="{ row }">
+        <div class="row-actions">
+          <BaseButton variant="secondary" @click="openEdit(row)">Edit</BaseButton>
+          <BaseButton variant="danger" @click="taskPendingDelete = row">Delete</BaseButton>
+        </div>
+      </template>
 
-      <div class="demo__stack">
-        <BaseInput v-model="title" label="Title" placeholder="Type at least 3 characters" />
+      <template #empty>No tasks match these filters.</template>
+    </BaseTable>
 
-        <BaseInput
-          v-model="title"
-          label="Same ref, second input"
-          :error="titleError"
-          placeholder="Both stay in sync"
-        />
+    <BaseModal v-model="formModalOpen">
+      <template #header>{{ taskBeingEdited ? 'Edit task' : 'New task' }}</template>
+      
+      <TaskForm
+        :initial-task="taskBeingEdited ?? undefined"
+        @submit="handleSubmit"
+        @cancel="formModalOpen = false"
+      />
+    </BaseModal>
 
-        <BaseInput label="Disabled" model-value="Read only" disabled />
-      </div>
+    <BaseModal v-model="deleteModalOpen">
+      <template #header>Delete task</template>
 
-      <p class="demo__counter">
-        Bound value: <strong>{{ title || '(empty)' }}</strong>
-        <span class="demo__hint">
-          Both inputs share one ref — typing in either updates the other and this line.
-        </span>
-      </p>
-    </section>
-
-    <section class="demo">
-      <h2>BaseSelect demo</h2>
-
-      <div class="demo__stack">
-        <BaseSelect v-model="status" :options="statusOptions" placeholder="Select a status" />
-
-        <BaseSelect v-model="status" :options="statusOptions" />
-
-        <BaseButton variant="secondary" @click="status = ''">Reset to placeholder</BaseButton>
-      </div>
-
-      <p class="demo__counter">
-        Bound value: <strong>{{ status || '(empty)' }}</strong>
-        <span class="demo__hint">
-          First select shows the placeholder while empty; reset puts it back.
-        </span>
-      </p>
-    </section>
-
-    <section class="demo">
-      <h2>BaseModal demo</h2>
-
-      <div class="demo__row">
-        <BaseButton @click="modalOpen = true">Open modal</BaseButton>
-      </div>
-
-      <p class="demo__counter">
-        Model value: <strong>{{ modalOpen ? 'open' : 'closed' }}</strong>
-        <span class="demo__hint">
-          Closes on ESC, backdrop click, the × button, and the footer buttons. Clicking inside
-          the panel must not close it.
-        </span>
+      <p class="delete-prompt">
+        Delete <strong>{{ taskPendingDelete?.title }}</strong
+        >? This cannot be undone.
       </p>
 
-      <BaseModal v-model="modalOpen">
-        <template #header>Sample modal</template>
-
-        <p>
-          Body content goes in the default slot. Clicking this text, or anywhere inside the
-          white panel, should leave the modal open.
-        </p>
-        <p>The page behind must not scroll while this is open.</p>
-
-        <template #footer>
-          <BaseButton variant="secondary" @click="modalOpen = false">Cancel</BaseButton>
-          <BaseButton @click="modalOpen = false">Confirm</BaseButton>
-        </template>
-      </BaseModal>
-    </section>
-
-    <section class="demo">
-      <h2>BaseToast demo</h2>
-
-      <div class="demo__row">
-        <BaseButton @click="notify('success', 'Task saved successfully.')">
-          Fire success toast
-        </BaseButton>
-        <BaseButton variant="danger" @click="notify('error', 'Could not save the task.')">
-          Fire error toast
-        </BaseButton>
-      </div>
-
-      <p class="demo__counter">
-        Toasts stack top-right and auto-dismiss after 3s.
-        <span class="demo__hint">
-          The × closes one immediately. BaseToast is mounted once in App.vue — every view
-          shares the same store instance.
-        </span>
-      </p>
-    </section>
-
-    <section class="demo">
-      <h2>TaskForm demo</h2>
-
-      <div class="demo__row">
-        <BaseButton variant="secondary" @click="editing = !editing">
-          {{ editing ? 'Switch to create mode' : 'Switch to edit mode (seed row 1)' }}
-        </BaseButton>
-      </div>
-
-      <TaskForm :initial-task="initialTask" @submit="handleFormSubmit" @cancel="editing = false" />
-
-      <p class="demo__counter">
-        Last emitted payload:
-        <strong>{{ lastSubmitted ? JSON.stringify(lastSubmitted) : '(none)' }}</strong>
-        <span class="demo__hint">
-          Submitting empty flags every field; a bad email flags only that one. Switching to
-          edit mode refills the fields and clears the errors.
-        </span>
-      </p>
-    </section>
-
-    <section class="demo demo--wide">
-      <h2>BaseTable demo</h2>
-
-      <BaseTable :columns="taskColumns" :rows="seedTasks">
-        <!-- `row` is typed as Task by the generic slot, so row.status is a TaskStatus. -->
-        <template #cell-status="{ row }">
-          <StatusBadge :status="row.status" />
-        </template>
-      </BaseTable>
-
-      <p class="demo__counter">
-        Rows: <strong>{{ seedTasks.length }}</strong>
-        <span class="demo__hint">
-          Only Status is customised; Title, Assignee and Priority use the plain-text fallback.
-        </span>
-      </p>
-    </section>
+      <template #footer>
+        <BaseButton variant="secondary" @click="taskPendingDelete = null">Cancel</BaseButton>
+        <BaseButton variant="danger" @click="confirmDelete">Delete</BaseButton>
+      </template>
+    </BaseModal>
   </section>
 </template>
 
 <style scoped>
 .view {
   padding: 1.5rem;
+  max-width: 64rem;
 }
 
-.demo {
-  margin-top: 2rem;
-  padding: 1.25rem;
-  border: 1px dashed #d1d5db;
-  border-radius: 8px;
-  max-width: 40rem;
+.view__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
 }
 
-.demo h2 {
-  margin: 0 0 1rem;
-  font-size: 1rem;
+.view__header h1 {
+  margin: 0;
+  font-size: 1.5rem;
 }
 
-.demo__row {
+.filters {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-end;
   gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
-.demo__stack {
+.filters__field {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  max-width: 22rem;
+  gap: 0.3rem;
+  min-width: 11rem;
 }
 
-.demo__counter {
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-.demo__hint {
-  display: block;
-  color: #6b7280;
+.filters__label {
   font-size: 0.8rem;
+  font-weight: 500;
+  color: #6b7280;
 }
 
-.demo--wide {
-  max-width: 52rem;
+.filters__count {
+  margin: 0 0 0 auto;
+  font-size: 0.85rem;
+  color: #6b7280;
 }
 
+.row-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.delete-prompt {
+  margin: 0;
+}
 </style>
