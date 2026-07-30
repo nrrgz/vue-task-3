@@ -3,10 +3,9 @@ import { storeToRefs } from 'pinia'
 import BaseToast from './components/base/BaseToast.vue'
 import { useNotificationStore } from './stores/notifications'
 
-// The store is wired here, at the app layer, so BaseToast stays a dumb renderer.
 const notificationStore = useNotificationStore()
-const { toasts } = storeToRefs(notificationStore) // state — needs storeToRefs to stay reactive
-const { dismiss } = notificationStore // action — destructured directly
+const { toasts } = storeToRefs(notificationStore)
+const { dismiss } = notificationStore
 </script>
 
 <template>

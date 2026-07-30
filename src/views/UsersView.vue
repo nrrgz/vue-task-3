@@ -135,7 +135,6 @@ function confirmRemove() {
     </div>
 
     <BaseTable :columns="columns" :rows="visibleUsers" row-key="id">
-      <!-- Same dynamic-slot mechanism as the tasks board, different column entirely. -->
       <template #cell-role="{ value }">
         <span class="role" :class="`role--${value}`">{{ value }}</span>
       </template>
