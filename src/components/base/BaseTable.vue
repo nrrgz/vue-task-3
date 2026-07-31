@@ -8,13 +8,21 @@ interface Column {
   hideLabel?: boolean
 }
 
+type SortDirection = 'asc' | 'desc'
+
 interface Props {
   columns: Column[]
   rows: T[]
   rowKey?: string
+  sortKey?: string | null
+  sortOrder?: SortDirection
 }
 
 const props = defineProps<Props>()
+
+const emit = defineEmits<{
+  'update:sort': [value: { key: string | null; order: SortDirection }]
+}>()
 
 defineSlots<{
   [name: `cell-${string}`]: (props: { row: T; value: unknown }) => unknown
@@ -32,22 +40,34 @@ function keyFor(row: T, index: number): string | number {
   return typeof value === 'string' || typeof value === 'number' ? value : index
 }
 
-type SortDirection = 'asc' | 'desc'
+const internalKey = ref<string | null>(null)
+const internalDirection = ref<SortDirection>('asc')
 
-const sortKey = ref<string | null>(null)
-const sortDirection = ref<SortDirection>('asc')
+const isControlled = computed(() => props.sortKey !== undefined)
+
+const activeKey = computed(() => (isControlled.value ? (props.sortKey ?? null) : internalKey.value))
+
+const activeDirection = computed(() =>
+  isControlled.value ? (props.sortOrder ?? 'asc') : internalDirection.value,
+)
+
+function nextSort(column: Column): { key: string | null; order: SortDirection } {
+  if (activeKey.value !== column.key) return { key: column.key, order: 'asc' }
+  if (activeDirection.value === 'asc') return { key: column.key, order: 'desc' }
+  return { key: null, order: 'asc' }
+}
 
 function toggleSort(column: Column): void {
   if (!column.sortable) return
 
-  if (sortKey.value !== column.key) {
-    sortKey.value = column.key
-    sortDirection.value = 'asc'
-  } else if (sortDirection.value === 'asc') {
-    sortDirection.value = 'desc'
-  } else {
-    sortKey.value = null
+  const next = nextSort(column)
+
+  if (!isControlled.value) {
+    internalKey.value = next.key
+    internalDirection.value = next.order
   }
+
+  emit('update:sort', next)
 }
 
 function isBlank(value: unknown): boolean {
@@ -60,10 +80,12 @@ function compareValues(a: unknown, b: unknown): number {
 }
 
 const sortedRows = computed<T[]>(() => {
-  const key = sortKey.value
+  if (isControlled.value) return props.rows
+
+  const key = internalKey.value
   if (key === null) return props.rows
 
-  const direction = sortDirection.value
+  const direction = internalDirection.value
 
   return [...props.rows].sort((rowA, rowB) => {
     const a = cellValue(rowA, key)
@@ -79,14 +101,14 @@ const sortedRows = computed<T[]>(() => {
 })
 
 function indicatorFor(key: string): string {
-  if (sortKey.value !== key) return ''
-  return sortDirection.value === 'asc' ? '▲' : '▼'
+  if (activeKey.value !== key) return ''
+  return activeDirection.value === 'asc' ? '▲' : '▼'
 }
 
 function ariaSortFor(column: Column): 'ascending' | 'descending' | 'none' | undefined {
   if (!column.sortable) return undefined
-  if (sortKey.value !== column.key) return 'none'
-  return sortDirection.value === 'asc' ? 'ascending' : 'descending'
+  if (activeKey.value !== column.key) return 'none'
+  return activeDirection.value === 'asc' ? 'ascending' : 'descending'
 }
 </script>
 
